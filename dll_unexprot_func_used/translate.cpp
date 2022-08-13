@@ -284,6 +284,12 @@ int tranlate_to_normal_unity3d_file(string inpath, string outpath) {
         //delete[] compressedBytes;
     }
 
+    // 重新计算解密后的compressedSizeSum
+    compressedSizeSum = 0;
+    for (int i = 0; i < blocksInfoCount; i++) {
+        compressedSizeSum += m_BlocksInfo[i].compressedSize;
+    }
+
     // Output Unity Standard *.unity3d Files
     string unityFS = "556e697479465300"; // UnityFS\0 (8bit)
     string ArchiveVersion = "00000006"; // 6 (4bit)

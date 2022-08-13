@@ -15,12 +15,12 @@ void main(int argc, char** argv) {
 		cout << "outpath : 解密文件路径" << endl;
 	}
 	else {
-		string args[3];
+		string args[4];
 		for (int i = 0; i < argc; i++) {
-			args[i] = argv[i + 1];
+			args[i] = argv[i];
 		}
-		if (args[0] == "onlyfile") {
-			tranlate_to_normal_unity3d_file(args[1], args[2]);
+		if (args[1] == "onlyfile") {
+			tranlate_to_normal_unity3d_file(args[2], args[3]);
 		}
 	}
 }

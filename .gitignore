@@ -361,3 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/dll_unexprot_func_used/01100180235dc18e9201d5890a27c00f.unity3d
+/dll_unexprot_func_used/00a71fbea8152cdc157cd1f83bbc2c23.unity3d
+/dll_unexprot_func_used/000a060321e33a8b5f59796635e81ac5.unity3d
+/dll_unexprot_func_used/test2.bin
+/dll_unexprot_func_used/test.bin
+/000a060321e33a8b5f59796635e81ac5.unity3d

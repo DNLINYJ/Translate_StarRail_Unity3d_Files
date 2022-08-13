@@ -111,6 +111,10 @@ struct Node
 };
 
 int tranlate_to_normal_unity3d_file(string inpath, string outpath) {
+
+    cout << "[Debug] 加密文件目录:" << inpath << endl;
+    cout << "[Debug] 解密文件目录:" << outpath << endl;
+
     fstream mhy_unity3d_file;
     mhy_unity3d_file.open(inpath, ios::in | ios::binary);
     
@@ -131,7 +135,7 @@ int tranlate_to_normal_unity3d_file(string inpath, string outpath) {
     // https://stackoverflow.com/questions/34780365/how-do-i-convert-an-unsigned-char-array-into-an-unsigned-long-long
     unsigned int bundleSize_unsigned_int;
     memcpy(&bundleSize_unsigned_int, bundleSize, sizeof bundleSize);
-    // bundleSize_unsigned_int = _byteswap_ulong(bundleSize_unsigned_int);
+    bundleSize_unsigned_int = _byteswap_ulong(bundleSize_unsigned_int);
 
     unsigned int compressedBlocksInfoSize_unsigned_int;
     memcpy(&compressedBlocksInfoSize_unsigned_int, compressedBlocksInfoSize, sizeof compressedBlocksInfoSize);
@@ -153,7 +157,7 @@ int tranlate_to_normal_unity3d_file(string inpath, string outpath) {
     mhy_unity3d_file.read(reinterpret_cast<char*>(blocksInfoBytes), compressedBlocksInfoSize_unsigned_int);
 
     //unsigned int blocksInfoBytes_D_size = 0;
-    if (compressedBlocksInfoSize_unsigned_int > 0xFF) {
+    if ((flag_unsigned_int & 0x3F) == 0x5 && compressedBlocksInfoSize_unsigned_int > 0xFF) {
         Decrypt(blocksInfoBytes, compressedBlocksInfoSize_unsigned_int);
         blocksInfoBytes += 0x14;
         compressedBlocksInfoSize_unsigned_int -= 0x14;
@@ -162,7 +166,7 @@ int tranlate_to_normal_unity3d_file(string inpath, string outpath) {
 	long long v1 = compressedBlocksInfoSize_unsigned_int;
 	long long v2 = uncompressedBlocksInfoSize_unsigned_int;
 
-	LZ4_decompress_safe((const __int8*)blocksInfoBytes, (char*)uncompressedBlocksInfo, compressedBlocksInfoSize_unsigned_int, uncompressedBlocksInfoSize_unsigned_int);
+	LZ4_decompress_safe((char*)blocksInfoBytes, (char*)uncompressedBlocksInfo, compressedBlocksInfoSize_unsigned_int, uncompressedBlocksInfoSize_unsigned_int);
 
     // 我叼你妈的内存分配 FUCK (可能是内存覆盖导致堆损坏)
     // 为了重新打包不能释放内存
@@ -271,7 +275,7 @@ int tranlate_to_normal_unity3d_file(string inpath, string outpath) {
         compressedSize = m_BlocksInfo[i].compressedSize;
         compressedBytes = new std::byte[compressedSize];
         mhy_unity3d_file.read(reinterpret_cast<char*>(compressedBytes), compressedSize);
-        if (compressedSize > 0xFF) {
+        if ((m_BlocksInfo[i].flags & 0x3F) == 0x5 && compressedSize > 0xFF) {
             Decrypt(compressedBytes, compressedSize);
             compressedBytes += 0x14;
             compressedSize -= 0x14;

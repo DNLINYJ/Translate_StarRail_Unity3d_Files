@@ -9,3 +9,5 @@
 [AssetStudio](https://github.com/Perfare/AssetStudio)
 
 [Analysis of Asset Bundle Format](https://programmersought.com/article/61574758150/)
+
+[LZ4](https://github.com/lz4/lz4)

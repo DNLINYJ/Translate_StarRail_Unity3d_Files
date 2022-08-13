@@ -15,13 +15,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="translate.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="AES-128.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="lz4.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -33,6 +36,9 @@
       <Filter>源文件</Filter>
     </ClInclude>
     <ClInclude Include="lz4.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="translate.h">
       <Filter>源文件</Filter>
     </ClInclude>
   </ItemGroup>

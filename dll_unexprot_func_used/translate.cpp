@@ -104,9 +104,9 @@ struct StorageBlock {
 
 struct Node
 {
-    long offset = 0;
-    long size = 0;
-    unsigned int flags = 0;
+    unsigned __int64 offset = 0;
+    unsigned __int64 size = 0;
+    unsigned __int16 flags = 0;
     string path;
 };
 
@@ -304,7 +304,7 @@ int tranlate_to_normal_unity3d_file(string inpath, string outpath) {
     unsigned int nodesSize = 0;
     for (int i = 0; i < nodesCount; i++)
     {
-        nodesSize = nodesSize + 20 + m_DirectoryInfo[i].path.length();
+        nodesSize = nodesSize + 20 + m_DirectoryInfo[i].path.length() + 1; // +1 是天杀的\00
     }
 
     // 42 为 上方header的大小
@@ -375,15 +375,16 @@ int tranlate_to_normal_unity3d_file(string inpath, string outpath) {
 
         memcpy(NewBlocksInfoBytes, &m_DirectoryInfo[i].size, 8i64);
         NewBlocksInfoBytes += 8i64;
+        //m_DirectoryInfo[i].size = _byteswap_uint64(m_DirectoryInfo[i].size);
 
         m_DirectoryInfo[i].flags = _byteswap_ulong(m_DirectoryInfo[i].flags);
         memcpy(NewBlocksInfoBytes, &m_DirectoryInfo[i].flags, 4i64);
         NewBlocksInfoBytes += 4i64;
 
-        char* path_v1 = new char[m_DirectoryInfo[i].path.length()];
+        char* path_v1 = new char[m_DirectoryInfo[i].path.length()]; 
         path_v1 = (char*)m_DirectoryInfo[i].path.c_str();
-        memcpy(NewBlocksInfoBytes, path_v1, m_DirectoryInfo[i].path.length());
-        NewBlocksInfoBytes += m_DirectoryInfo[i].path.length();
+        memcpy(NewBlocksInfoBytes, path_v1, m_DirectoryInfo[i].path.length() + 1);// +1 是天杀的\00
+        NewBlocksInfoBytes += m_DirectoryInfo[i].path.length() + 1;
     }
 
     // 将新的BlocksInfoBytes用LZ4压缩

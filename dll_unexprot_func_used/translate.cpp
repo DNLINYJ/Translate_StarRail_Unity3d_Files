@@ -296,7 +296,7 @@ int tranlate_to_normal_unity3d_file(string inpath, string outpath) {
 	string unityFS = "556e697479465300"; // UnityFS\0 (8bit)
 	string ArchiveVersion = "00000006"; // 6 (4bit)
 	string UnityBundleVersion = "352e782e7800"; // 5.x.x\0 (6bit)
-	string ABPackVersion = "323031392E342E38663100"; // 2019.4.8f1\0 (24bit)
+	string ABPackVersion = "323031392E342E38663100"; // 2019.4.8f1\0 (11bit)
 
 	// 获取路径信息总大小
 	unsigned int nodesSize = 0;

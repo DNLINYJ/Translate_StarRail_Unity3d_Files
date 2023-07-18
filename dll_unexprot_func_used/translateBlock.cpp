@@ -32,18 +32,65 @@ struct BlockIndex
 {
 	int id;
 	string path;
+	string key3_path;
 };
 
-std::vector<std::string> split(const std::string& input, char delimiter) {
-	std::vector<std::string> tokens;
-	std::istringstream input_stream(input);
-	std::string token;
+struct key3 {
+	uint8_t key3[16];
+};
 
-	while (std::getline(input_stream, token, delimiter)) {
-		tokens.push_back(token);
+void Decrypt(std::byte* bytes, unsigned int size, uint8_t* key3_) {
+	uint8_t* key1 = new uint8_t[0x10];
+	uint8_t* key2 = new uint8_t[0x10];
+	uint8_t* key3 = new uint8_t[0x10];
+
+	memcpy(key1, bytes + 4, 0x10);
+	memcpy(key2, bytes + 0x74, 0x10);
+	memcpy(key3, bytes + 0x84, 0x10);
+
+	//__int32 encryptedBlockSize = std::min({ 0x10 * ((size - 0x94) >> 7), 0x400 });
+	unsigned __int32 encryptedBlockSize;
+
+	if (0x10 * ((size - 0x94) >> 7) < 0x400)
+		encryptedBlockSize = 0x10 * ((size - 0x94) >> 7);
+	else
+		encryptedBlockSize = 0x400;
+
+	std::byte* encryptedBlock = new std::byte[encryptedBlockSize];
+	memcpy(encryptedBlock, bytes + 0x94, encryptedBlockSize); // 不知道为什么C#这里会少读16字节
+
+	for (int i = 0; i < sizeof(ConstKey) / sizeof(*ConstKey); i++)
+		key2[i] ^= ConstKey[i];
+
+	AESDecrypt(key1, (uint8_t*)ExpansionKey);
+	AESDecrypt(key3, (uint8_t*)ExpansionKey);
+
+	for (int i = 0; i < 0x10; i++)
+		key1[i] ^= key3[i];
+
+	memcpy(bytes + 0x84, key1, 0x10);
+
+	memcpy(key3_, key3, 0x10);
+
+	unsigned __int64 seed1;
+	memcpy(&seed1, key2, sizeof key2);
+	unsigned __int64 seed2;
+	memcpy(&seed2, key3, sizeof key3);
+	unsigned __int64 seed = seed2 ^ seed1 ^ (seed1 + (unsigned int)size - 20);
+
+	std::byte seedBytes[sizeof(seed)];
+
+	for (int i = 0; i < sizeof(seed); i++)
+	{
+		seedBytes[i] = (std::byte)((seed >> (8 * i)) & 0xFF);
 	}
 
-	return tokens;
+	for (int i = 0; i < encryptedBlockSize; i++)
+	{
+		encryptedBlock[i] ^= (std::byte)((uint8_t)seedBytes[i % 8] ^ Key[i]);
+	}
+	memcpy(bytes + 0x94, encryptedBlock, encryptedBlockSize);
+
 }
 
 int tranlateBlock_to_normal_unity3d_file(string inpath, string outpath) {
@@ -67,7 +114,7 @@ int tranlateBlock_to_normal_unity3d_file(string inpath, string outpath) {
 		cout << "[Debug] loopId:" << loopId << endl;
 
 		// 写入BlockIndex
-		BlockIndex blockIndex = { loopId , folderPath + "\\" + std::to_string(loopId) + ".unity3d" };
+		BlockIndex blockIndex = { loopId , folderPath + "\\" + std::to_string(loopId) + ".unity3d", folderPath + "\\" + std::to_string(loopId) + ".key3" };
 		block_indices.push_back(blockIndex);
 
 		// ReadHeader
@@ -219,16 +266,22 @@ int tranlateBlock_to_normal_unity3d_file(string inpath, string outpath) {
 
 		unsigned int compressedSize;
 		std::byte* compressedBytes;
+		std::vector<key3> key3_;
+
 
 		for (int i = 0; i < blocksInfoCount; i++) {
 			compressedSize = m_BlocksInfo[i].compressedSize;
 			compressedBytes = new std::byte[compressedSize];
 			mhy_unity3d_file.read(reinterpret_cast<char*>(compressedBytes), compressedSize);
 			if ((m_BlocksInfo[i].flags & 0x3F) == 0x5 && compressedSize > 0xFF) {
-				Decrypt(compressedBytes, compressedSize);
+				key3 oldKey3;
+				Decrypt(compressedBytes, compressedSize, oldKey3.key3);
+
 				compressedBytes += 0x14;
 				compressedSize -= 0x14;
 				m_BlocksInfo[i].compressedSize = compressedSize;
+
+				key3_.push_back(oldKey3);
 			}
 			memcpy(blocksStream, compressedBytes, compressedSize);
 			blocksStream += compressedSize;
@@ -247,7 +300,7 @@ int tranlateBlock_to_normal_unity3d_file(string inpath, string outpath) {
 		string unityFS = "556e697479465300"; // UnityFS\0 (8bit)
 		string ArchiveVersion = "00000006"; // 6 (4bit)
 		string UnityBundleVersion = "352e782e7800"; // 5.x.x\0 (6bit)
-		string ABPackVersion = "323031392E342E38663100"; // 2019.4.8f1\0 (24bit)
+		string ABPackVersion = "323031392e342e333266310a3200"; // 2019.4.32f1.2\0 (14bit)
 
 		// 获取路径信息总大小
 		unsigned int nodesSize = 0;
@@ -262,10 +315,22 @@ int tranlateBlock_to_normal_unity3d_file(string inpath, string outpath) {
 		// 10 * blocksInfoCount 为 各区块信息总大小
 		// nodesSize 为 路径信息总大小
 		// compressedSizeSum 为 blocks 总大小
-		unsigned __int64 ABPackSize = 42 + 20 + 20 + (10 * blocksInfoCount) + nodesSize + compressedSizeSum;
+		unsigned __int64 ABPackSize = 34 + 20 + 20 + (10 * blocksInfoCount) + nodesSize + compressedSizeSum;
 
 		fstream testoutput;
 		testoutput.open(folderPath + "\\" + std::to_string(loopId) + ".unity3d", std::ios::binary | std::ios::out);
+
+		fstream key3output;
+		key3output.open(folderPath + "\\" + std::to_string(loopId) + ".key3", std::ios::binary | std::ios::out);
+		if (key3output.is_open()) {
+			for (const auto& _key3 : key3_) {
+				// 写入id
+				key3output.write(reinterpret_cast<const char*>(_key3.key3), 0x10);
+			}
+
+			key3output.close();
+			std::cout << "[-] Saved key3 instances to file: " << folderPath + "\\" + std::to_string(loopId) + ".key3" << std::endl;
+		}
 		loopId++;
 
 		// 写入 Unity3d文件标准头
@@ -388,6 +453,15 @@ int tranlateBlock_to_normal_unity3d_file(string inpath, string outpath) {
 
 			// 写入path
 			blockIndexFile.write(blockIndex.path.data(), path_length);
+
+			int key3_path_length = static_cast<int>(blockIndex.key3_path.size());
+
+			// 写入path的长度
+			blockIndexFile.write(reinterpret_cast<const char*>(&key3_path_length), sizeof(int));
+
+			// 写入path
+			blockIndexFile.write(blockIndex.key3_path.data(), key3_path_length);
+
 		}
 
 		blockIndexFile.close();

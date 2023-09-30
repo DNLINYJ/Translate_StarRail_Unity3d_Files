@@ -10,13 +10,13 @@ void main(int argc, char** argv) {
 	if (argc == 1) {
 		cout << endl;
 
-		cout << "½«ÐÇñ·ÌúµÀUnity3dÎÄ¼þ×ªÎªÕý³£Unity3dÎÄ¼þ By:²¤ÂÜÐ¡Î÷¹Ï" << endl;
-		cout << "±¾³ÌÐò½öÔÚÄÚÈº´«²¥£¬½ûÖ¹Íâ´«£¡£¡£¡" << endl;
+		cout << "å°†æ˜Ÿç©¹é“é“Unity3dæ–‡ä»¶è½¬ä¸ºæ­£å¸¸Unity3dæ–‡ä»¶ By:Sakura Nyoru" << endl;
+		//cout << "æœ¬ç¨‹åºä»…åœ¨å†…ç¾¤ä¼ æ’­ï¼Œç¦æ­¢å¤–ä¼ ï¼ï¼ï¼" << endl;
 		cout << endl;
-		cout << "²ÎÊý: <inpath> <outpath> <isblock>" << endl;
-		cout << "inpath : ¼ÓÃÜÎÄ¼þÂ·¾¶" << endl;
-		cout << "outpath : ½âÃÜÎÄ¼þÂ·¾¶" << endl;
-		cout << "isblock : Èç¹ûÊÇblockÎÄ¼þ ÇëÊäÈëÈÎÒâ×Ö·û´® :P [Õë¶ÔÈý²âÖ®ºó°æ±¾µÄÐÞ²¹]" << endl;
+		cout << "å‚æ•°: <inpath> <outpath> <isblock>" << endl;
+		cout << "inpath : åŠ å¯†æ–‡ä»¶è·¯å¾„" << endl;
+		cout << "outpath : è§£å¯†æ–‡ä»¶è·¯å¾„" << endl;
+		cout << "isblock : å¦‚æžœæ˜¯blockæ–‡ä»¶ è¯·è¾“å…¥ä»»æ„å­—ç¬¦ä¸² :P [é’ˆå¯¹ä¸‰æµ‹ä¹‹åŽç‰ˆæœ¬çš„ä¿®è¡¥]" << endl;
 		cout << endl;
 
 	}
